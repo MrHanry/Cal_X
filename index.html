@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Công Cụ Nhân Chéo Chia Ngang</title>
+
+    <!-- Cấu hình PWA cho Android và iPhone -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Tam Suất">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3553/3553460.png">
+
+    <!-- CSS & Frameworks -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: {
+                            bg: '#0f172a',
+                            card: '#1e293b',
+                            input: '#0f172a',
+                            border: '#334155'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0f172a;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0, transparent 50%);
+            min-height: 100vh;
+            color: #e2e8f0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .glass-card {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-group input {
+            transition: all 0.3s ease;
+        }
+        
+        .input-group input:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3), 0 4px 6px -4px rgba(59, 130, 246, 0.2);
+        }
+
+        @keyframes highlight {
+            0% { background-color: rgba(30, 58, 138, 0.8); transform: scale(1); }
+            50% { background-color: rgba(59, 130, 246, 0.4); transform: scale(1.02); }
+            100% { background-color: rgba(30, 58, 138, 0.2); transform: scale(1); }
+        }
+        .highlight-result {
+            animation: highlight 0.5s ease-out;
+        }
+        
+        .result-input {
+            background-color: rgba(30, 58, 138, 0.2) !important;
+            border-color: rgba(59, 130, 246, 0.5) !important;
+        }
+
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+
+<body class="flex items-center justify-center p-4 antialiased selection:bg-blue-500 selection:text-white">
+
+    <main class="w-full max-w-md">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-white mb-2 tracking-tight">Quy Tắc Tam Suất</h1>
+            <p class="text-gray-400 text-sm">Nhân chéo, chia ngang dễ dàng & chính xác</p>
+        </div>
+
+        <div class="glass-card rounded-3xl p-6 sm:p-8 relative overflow-hidden">
+            <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-blue-600 opacity-20 blur-3xl pointer-events-none"></div>
+            <div class="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 rounded-full bg-purple-600 opacity-20 blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10">
+                <div class="bg-blue-900/30 border-l-4 border-blue-500 p-4 mb-6 rounded-r-xl">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-info-circle text-blue-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-blue-200">
+                                Nhập 3 giá trị, tự động tính ô còn lại. Bạn có thể xóa/sửa bất kỳ ô nào sau khi tính.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-5 relative">
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+                        <i class="fas fa-times text-5xl text-gray-700/50"></i>
+                    </div>
+
+                    <!-- Variable A -->
+                    <div class="input-group flex flex-col z-10">
+                        <label for="A" class="text-xs font-semibold text-gray-400 uppercase mb-1.5 ml-1">Giá trị 1</label>
+                        <div class="relative">
+                            <input type="number" id="A" class="w-full bg-dark-input border border-dark-border text-white text-xl rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block p-3 px-4 shadow-inner" placeholder="10" step="any">
+                        </div>
+                    </div>
+
+                    <!-- Variable B -->
+                    <div class="input-group flex flex-col z-10">
+                        <label for="B" class="text-xs font-semibold text-gray-400 uppercase mb-1.5 ml-1 text-right">Giá trị 2</label>
+                        <div class="relative">
+                            <input type="number" id="B" class="w-full bg-dark-input border border-dark-border text-white text-xl rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block p-3 px-4 shadow-inner text-right" placeholder="50" step="any">
+                        </div>
+                    </div>
+
+                    <div class="col-span-2 flex items-center justify-center opacity-50 z-10 my-1">
+                        <div class="h-px bg-gray-600 w-full"></div>
+                        <i class="fas fa-arrow-down mx-4 text-gray-500 text-sm"></i>
+                        <div class="h-px bg-gray-600 w-full"></div>
+                    </div>
+
+                    <!-- Variable C -->
+                    <div class="input-group flex flex-col z-10">
+                        <label for="C" class="text-xs font-semibold text-gray-400 uppercase mb-1.5 ml-1">Giá trị 3</label>
+                        <div class="relative">
+                            <input type="number" id="C" class="w-full bg-dark-input border border-dark-border text-white text-xl rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block p-3 px-4 shadow-inner" placeholder="8" step="any">
+                        </div>
+                    </div>
+
+                    <!-- Variable D -->
+                    <div class="input-group flex flex-col z-10">
+                        <label for="D" class="text-xs font-semibold text-gray-400 uppercase mb-1.5 ml-1 text-right">Giá trị 4</label>
+                        <div class="relative group">
+                            <input type="number" id="D" class="w-full bg-dark-input border border-dark-border text-white text-xl rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block p-3 px-4 shadow-inner text-right transition-colors" placeholder="?" step="any">
+                            <button id="copyBtn" class="absolute inset-y-0 left-0 flex items-center justify-center pl-4 pr-3 text-gray-500 hover:text-blue-400 focus:outline-none hidden transition-colors" title="Sao chép">
+                                <i class="far fa-copy text-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Explanation Area -->
+                <div id="explanationContainer" class="mt-6 hidden transition-all duration-300 ease-in-out origin-top">
+                    <div class="bg-gray-800/80 rounded-xl p-4 border border-gray-700">
+                        <h3 class="text-sm font-medium text-gray-300 mb-2 flex items-center">
+                            <i class="fas fa-magic mr-2 text-blue-400"></i> Công thức:
+                        </h3>
+                        <div class="flex items-center justify-center bg-gray-900/80 p-3 rounded-lg border border-gray-700 shadow-inner font-mono text-sm overflow-x-auto whitespace-nowrap">
+                            <span id="formulaText" class="text-gray-300">...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="mt-8 flex justify-center">
+                    <button id="resetBtn" class="flex items-center px-6 py-2.5 text-sm font-medium text-gray-300 bg-gray-800 border border-gray-600 rounded-full hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all shadow-sm">
+                        <i class="fas fa-trash-alt mr-2 text-gray-400"></i> Xóa tất cả
+                    </button>
+                </div>
+
+            </div>
+        </div>
+        
+        <p class="text-center text-xs text-gray-500 mt-6 font-medium">
+            (X × B) / A = Kết quả
+        </p>
+    </main>
+
+    <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-800 border border-gray-700 text-white px-5 py-3 rounded-xl shadow-2xl text-sm font-medium transition-all duration-300 opacity-0 translate-y-4 pointer-events-none flex items-center z-50">
+        <i class="fas fa-check-circle text-green-400 mr-2 text-lg"></i> Đã sao chép!
+    </div>
+
+    <script>
+        // Đăng ký Service Worker cho PWA (chỉ chạy trên http/https, bỏ qua môi trường preview blob)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                if (window.location.protocol === 'https:' || window.location.protocol === 'http:') {
+                    navigator.serviceWorker.register('./sw.js')
+                        .then(reg => console.log('✅ Service Worker đăng ký thành công:', reg.scope))
+                        .catch(err => console.error('❌ Lỗi đăng ký Service Worker:', err));
+                } else {
+                    console.log('ℹ️ Bỏ qua đăng ký Service Worker trong môi trường Preview (chỉ chạy khi đưa lên host/GitHub Pages).');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputs = {
+                A: document.getElementById('A'),
+                B: document.getElementById('B'),
+                C: document.getElementById('C'),
+                D: document.getElementById('D')
+            };
+
+            const resetBtn = document.getElementById('resetBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const explanationContainer = document.getElementById('explanationContainer');
+            const formulaText = document.getElementById('formulaText');
+            const toast = document.getElementById('toast');
+
+            let resultKey = null; 
+
+            const handleInput = (changedKey) => {
+                const vals = {
+                    A: parseFloat(inputs.A.value),
+                    B: parseFloat(inputs.B.value),
+                    C: parseFloat(inputs.C.value),
+                    D: parseFloat(inputs.D.value)
+                };
+
+                const filledKeys = Object.keys(vals).filter(k => !isNaN(vals[k]));
+                clearErrors();
+
+                if (resultKey && changedKey !== resultKey) {
+                    const inputKeys = Object.keys(vals).filter(k => k !== resultKey);
+                    const hasEmptyInput = inputKeys.some(k => isNaN(vals[k]));
+                    
+                    if (hasEmptyInput) {
+                        inputs[resultKey].value = '';
+                        inputs[resultKey].classList.remove('result-input');
+                        resultKey = null;
+                        hideExplanation();
+                        return;
+                    }
+                }
+
+                if (resultKey === changedKey) {
+                    inputs[resultKey].classList.remove('result-input');
+                    resultKey = null;
+                    hideExplanation();
+                }
+
+                if (resultKey && changedKey !== resultKey) {
+                    calculateMath(resultKey, vals, true);
+                    return;
+                }
+
+                if (!resultKey && filledKeys.length === 3) {
+                    const emptyKey = Object.keys(vals).find(k => isNaN(vals[k]));
+                    calculateMath(emptyKey, vals, false);
+                } else if (!resultKey && filledKeys.length < 3) {
+                    hideExplanation();
+                }
+            };
+
+            const calculateMath = (targetKey, vals, isUpdate) => {
+                let result = 0;
+                let formula = "";
+                let error = null;
+
+                if (targetKey === 'D') {
+                    if (vals.A !== 0) { result = (vals.C * vals.B) / vals.A; formula = `D = (C × B) ÷ A = (${vals.C} × ${vals.B}) ÷ ${vals.A}`; } else error = 'A';
+                } else if (targetKey === 'C') {
+                    if (vals.B !== 0) { result = (vals.A * vals.D) / vals.B; formula = `C = (A × D) ÷ B = (${vals.A} × ${vals.D}) ÷ ${vals.B}`; } else error = 'B';
+                } else if (targetKey === 'B') {
+                    if (vals.C !== 0) { result = (vals.A * vals.D) / vals.C; formula = `B = (A × D) ÷ C = (${vals.A} × ${vals.D}) ÷ ${vals.C}`; } else error = 'C';
+                } else if (targetKey === 'A') {
+                    if (vals.D !== 0) { result = (vals.C * vals.B) / vals.D; formula = `A = (C × B) ÷ D = (${vals.C} × ${vals.B}) ÷ ${vals.D}`; } else error = 'D';
+                }
+
+                if (error) {
+                    showError(inputs[error]);
+                    return;
+                }
+
+                const formattedResult = Number.isInteger(result) ? result : parseFloat(result.toFixed(4));
+                
+                inputs[targetKey].value = formattedResult;
+                resultKey = targetKey;
+                
+                Object.values(inputs).forEach(input => input.classList.remove('result-input'));
+                inputs[targetKey].classList.add('result-input');
+                
+                if (!isUpdate) {
+                    highlightElement(inputs[targetKey]);
+                }
+                
+                showExplanation(formula, formattedResult);
+                
+                copyBtn.classList.remove('hidden');
+                inputs[targetKey].parentNode.appendChild(copyBtn);
+            };
+
+            const showError = (el) => {
+                el.classList.add('border-red-500', 'ring-2', 'ring-red-500');
+            };
+
+            const clearErrors = () => {
+                Object.values(inputs).forEach(input => {
+                    input.classList.remove('border-red-500', 'ring-2', 'ring-red-500');
+                });
+            };
+
+            const highlightElement = (element) => {
+                element.classList.remove('highlight-result');
+                void element.offsetWidth;
+                element.classList.add('highlight-result');
+            };
+
+            const showExplanation = (formula, result) => {
+                formulaText.innerHTML = `${formula} <strong class="text-blue-400 ml-2 font-bold">= ${result}</strong>`;
+                explanationContainer.classList.remove('hidden');
+                setTimeout(() => {
+                    explanationContainer.classList.add('opacity-100', 'scale-100');
+                    explanationContainer.classList.remove('opacity-0', 'scale-95');
+                }, 10);
+            };
+
+            const hideExplanation = () => {
+                copyBtn.classList.add('hidden');
+                explanationContainer.classList.remove('opacity-100', 'scale-100');
+                explanationContainer.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => {
+                    explanationContainer.classList.add('hidden');
+                }, 300);
+            };
+
+            const copyToClipboard = () => {
+                if (resultKey && inputs[resultKey].value) {
+                    const textToCopy = inputs[resultKey].value;
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(textToCopy).then(showToastNotification);
+                    } else {
+                        const el = document.createElement('textarea');
+                        el.value = textToCopy;
+                        document.body.appendChild(el);
+                        el.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(el);
+                        showToastNotification();
+                    }
+                }
+            };
+
+            const showToastNotification = () => {
+                toast.classList.remove('opacity-0', 'translate-y-4');
+                toast.classList.add('opacity-100', 'translate-y-0');
+                setTimeout(() => {
+                    toast.classList.remove('opacity-100', 'translate-y-0');
+                    toast.classList.add('opacity-0', 'translate-y-4');
+                }, 2500);
+            };
+
+            Object.keys(inputs).forEach(key => {
+                inputs[key].addEventListener('input', () => handleInput(key));
+            });
+
+            resetBtn.addEventListener('click', () => {
+                Object.values(inputs).forEach(input => {
+                    input.value = '';
+                    input.classList.remove('result-input');
+                });
+                clearErrors();
+                hideExplanation();
+                resultKey = null;
+                inputs.A.focus();
+            });
+
+            copyBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                copyToClipboard();
+            });
+
+            setTimeout(() => inputs.A.focus(), 300);
+        });
+    </script>
+</body>
+</html>
